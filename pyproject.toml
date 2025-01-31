@@ -1,9 +1,9 @@
 [project]
 name = "villa_management"
 authors = [
-    { name = "Soorya", email = "soorya@gmail.com"}
+    { name = "soorya", email = "soorya@gmail.com"}
 ]
-description = "Villa Community System"
+description = "Villa Management"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]

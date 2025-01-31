@@ -1,7 +1,7 @@
 app_name = "villa_management"
 app_title = "Villa Management"
-app_publisher = "Soorya"
-app_description = "Villa Community System"
+app_publisher = "soorya"
+app_description = "Villa Management"
 app_email = "soorya@gmail.com"
 app_license = "mit"
 
