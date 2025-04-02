@@ -1,0 +1,125 @@
+{
+ "actions": [],
+ "allow_guest_to_view": 1,
+ "allow_rename": 1,
+ "autoname": "field:full_name",
+ "creation": "2025-02-01 09:04:37.179722",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "full_name",
+  "date_of_birth",
+  "gender",
+  "proof",
+  "place",
+  "contact_number",
+  "email",
+  "job_profile",
+  "villa_number",
+  "villa_image",
+  "community_type",
+  "role",
+  "family_members"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name",
+   "unique": 1
+  },
+  {
+   "fieldname": "proof",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "community_type",
+   "fieldtype": "Select",
+   "label": "Community Type",
+   "options": "\nVilla Owner\nRenter"
+  },
+  {
+   "fieldname": "place",
+   "fieldtype": "Data",
+   "label": "Place"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Contact Number"
+  },
+  {
+   "fieldname": "villa_number",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Villa Number",
+   "options": "Villa Details"
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date Of Birth"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "\nMale\nFemale\nOther"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email"
+  },
+  {
+   "fetch_from": "villa_number.image",
+   "fieldname": "villa_image",
+   "fieldtype": "Link",
+   "label": "Villa Image",
+   "options": "Villa Details"
+  },
+  {
+   "fieldname": "job_profile",
+   "fieldtype": "Data",
+   "label": "Job Profile"
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Data",
+   "label": "Role"
+  },
+  {
+   "fieldname": "family_members",
+   "fieldtype": "Table",
+   "label": "Resident Family Members Details",
+   "options": "Family Members"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-04-01 12:15:30.844847",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Residents Details",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

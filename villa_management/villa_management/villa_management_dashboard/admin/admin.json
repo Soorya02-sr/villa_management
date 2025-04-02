@@ -1,0 +1,31 @@
+{
+ "cards": [
+  {
+   "card": "Resident"
+  },
+  {
+   "card": "Employees"
+  },
+  {
+   "card": "Visitor-1"
+  }
+ ],
+ "charts": [
+  {
+   "chart": "Employee Leave",
+   "width": "Half"
+  }
+ ],
+ "creation": "2025-03-04 14:19:26.555167",
+ "dashboard_name": "Admin",
+ "docstatus": 0,
+ "doctype": "Dashboard",
+ "idx": 0,
+ "is_default": 0,
+ "is_standard": 1,
+ "modified": "2025-03-08 22:55:52.846735",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Admin",
+ "owner": "Administrator"
+}

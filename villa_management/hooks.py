@@ -57,7 +57,11 @@ app_license = "mit"
 # ----------
 
 # application home page (will override Website Settings)
-# home_page = "login"
+home_page = "index"
+# role_home_page = {
+#     "Resident": "/dashboard"
+# }
+
 
 # website user home page (by Role)
 # role_home_page = {
@@ -241,4 +245,40 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+ 
+# custom_app/hooks.py
+signup_form_template="villa_management/templates/signup.html"
+website_routes = [
+    {"from_route": "/dashboard", "to_route": "villa_management.dashboard"}
+]
 
+# doc_events = {
+#     "User": {
+#         "after_insert": "villa_management.user.create_employee"
+#     }
+# }
+
+
+# doc_events = {
+#     "Notifications": {
+#         "after_insert": "villa_management.notification.send_notification"
+#     }
+# }
+# socketio_port = 9000
+
+
+# csrf = {
+#     "enabled": True
+# }
+
+# hooks.py in your custom app
+# on_session_creation = "villa_management.custom_app.on_session_creation"
+
+
+
+# boot_session = "villa_management.custom_app.route_user"
+
+
+# # Override ERPNext's login behavior to redirect Residents
+on_login = "villa_management.custom_app.on_login"
+app_include_css = "/assets/villa_management/public/favicon.ico"

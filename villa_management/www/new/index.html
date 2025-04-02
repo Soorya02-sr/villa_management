@@ -1,0 +1,994 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="{{ frappe.csrf_token }}">
+    <title>VillaEase Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+         /* Custom CSS to extend the color to the footer */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            background-color: #f8f9fa; /* Light gray background for main content */
+        }
+
+        .list-section {
+            background-color: #e9ecef; /* Light gray background for the list section */
+            padding: 1rem;
+            flex: 1; /* Ensure it takes up remaining space */
+        }
+
+        .footer {
+            background-color: #2c3e50; /* Dark background for footer */
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        // Function to show/hide content sections
+        function showContent(contentId) {
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => content.classList.add('hidden'));
+            const selectedContent = document.getElementById(contentId);
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+        }
+
+        // Function to handle logout
+        function logout() {
+            fetch('/api/method/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Logout failed. Please try again.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('profile-form');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            const editBtn = document.getElementById('edit-btn');
+            const saveBtn = document.getElementById('save-btn');
+
+            editBtn.addEventListener('click', function () {
+                inputs.forEach(input => input.removeAttribute('disabled'));
+                saveBtn.style.display = 'inline-block';
+                editBtn.style.display = 'none';
+            });
+
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const formData = {
+                    full_name: document.getElementById('name').value,
+                    date_of_birth: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    place: document.getElementById('place').value,
+                    contact_number: document.getElementById('contact_number').value,
+                    job_profile: document.getElementById('job_profile').value,
+                    family_members: getFamilyMembersData() // Add family members data
+                };
+
+                try {
+                    const response = await fetch('/api/method/villa_management.custom_app.update_profile', {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Frappe-CSRF-Token': csrfToken
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+                    console.log(result);
+
+                    if (result.message && result.message.status === 'success') {
+                        alert('Profile updated successfully!');
+                        window.location.href = '/dashboard'; // Redirect after update
+                    } else {
+                        alert('Error saving profile: ' + (result.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+
+            // Function to add a new row to the family members table
+            document.getElementById('add-family-member').addEventListener('click', function () {
+                const tableBody = document.querySelector('#family-members tbody');
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><input type="text" class="w-full p-2 border rounded-lg" name="family_full_name" required></td>
+                    <td><input type="number" class="w-full p-2 border rounded-lg" name="age" required></td>
+                    <td>
+                        <select class="w-full p-2 border rounded-lg" name="gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="w-full p-2 border rounded-lg" name="occupation" required></td>
+                    <td><input type="text" class="w-full p-2 border rounded-lg" name="relation" required></td>
+                    <td><button type="button" class="remove-row bg-red-500 text-white p-2 rounded-lg">Remove</button></td>
+                `;
+                tableBody.appendChild(newRow);
+            });
+
+            // Function to remove a row from the family members table
+            document.addEventListener('click', function (event) {
+                if (event.target.classList.contains('remove-row')) {
+                    event.target.closest('tr').remove();
+                }
+            });
+
+            // Function to get family members data
+            function getFamilyMembersData() {
+                const tableBody = document.querySelector('tbody');
+                const rows = tableBody.querySelectorAll('tr');
+                const data = [];
+
+                rows.forEach(row => {
+                    const rowData = {};
+                    const cells = row.querySelectorAll('td');
+                    rowData.family_full_name = cells[0].querySelector('input').value;
+                    rowData.age = cells[1].querySelector('input').value;
+                    rowData.gender = cells[2].querySelector('select').value;
+                    rowData.occupation = cells[3].querySelector('input').value;
+                    rowData.relation = cells[4].querySelector('input').value;
+                    data.push(rowData);
+                });
+
+                return data;
+            }
+
+
+            async function fetchMaintenanceRequests() {
+    try {
+        const tableBody = document.querySelector('#maintenance-requests-table tbody');
+        tableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4">Loading...</td></tr>`;
+
+        const response = await fetch('/api/method/villa_management.custom_app.get_maintenance_requests', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Frappe-CSRF-Token': csrfToken
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('API Response:', result); // Log the API response
+
+        // Check if the response is successful
+        if (result.message.status === 'error') {
+            throw new Error(result.message.message || 'Failed to fetch maintenance requests');
+        }
+
+        const requests = result.message.data; // Access data from message.data
+
+        if (!requests || requests.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4">No maintenance requests found.</td></tr>`;
+            return;
+        }
+
+        tableBody.innerHTML = '';
+        requests.forEach(request => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="border p-2">${request.service_type}</td>
+                <td class="border p-2">${request.submitted_at}</td>
+                <td class="border p-2">${request.workflow_state}</td> <!-- Include status -->
+            `;
+            tableBody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while fetching the data. Please try again later.');
+        const tableBody = document.querySelector('#maintenance-requests-table tbody');
+        tableBody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-red-500">${error.message}</td></tr>`;
+    }
+}
+
+    // Function to attach event listeners to "View Details" buttons
+    function attachViewDetailsListeners() {
+        document.querySelectorAll('.view-details').forEach(button => {
+            button.addEventListener('click', function () {
+                const requestId = this.getAttribute('data-id');
+                viewRequestDetails(requestId); // Ensure this function is defined
+            });
+        });
+    }
+
+    // Function to periodically fetch maintenance requests
+    function startPeriodicFetch() {
+        fetchMaintenanceRequests(); // Fetch immediately
+        setInterval(fetchMaintenanceRequests, 6000); // Fetch every 12 hr
+    }
+
+    // Start periodic fetching when the maintenance section is shown
+    const maintenanceLink = document.querySelector('a[onclick="showContent(\'maintenance\')"]');
+    if (maintenanceLink) {
+        maintenanceLink.addEventListener('click', startPeriodicFetch);
+    }
+
+});
+function fetchPayments() {
+    // Get DOM elements
+    const container = $('#payment-cards-container');
+    const loadingStatus = $('#payment-loading-status');
+    const errorMessage = $('#payment-error-message');
+    
+    // Clear previous content and show
+    container.empty();
+    errorMessage.addClass('hidden').empty();
+    loadingStatus.removeClass('hidden');
+    
+    // Make API request
+    $.ajax({
+        url: '/api/method/villa_management.custom_app.get_payments',
+        type: 'GET',
+        headers: {
+            'X-Frappe-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        success: function(response) {
+            console.log("API Response:", response);
+            loadingStatus.addClass('hidden');
+            
+            if (response && response.message) {
+                if (response.message.status === "success") {
+                    const payments = response.message.data;
+                    
+                    if (payments && payments.length > 0) {
+                        renderPaymentCards(payments);
+                    } else {
+                        container.html(`
+                            <div class="col-span-3 text-center p-4 text-gray-500 border rounded-lg">
+                                No payments found for your account.
+                                <div class="text-xs mt-2">(User: ${response.message.user || 'Unknown'})</div>
+                            </div>
+                        `);
+                    }
+                } else {
+                    showPaymentError(response.message?.message || "Error loading payments");
+                }
+            } else {
+                showPaymentError("Invalid API response format");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Payment fetch error:", error);
+            loadingStatus.addClass('hidden');
+            showPaymentError("Failed to load payments. Please try again.");
+        }
+    });
+}
+
+function renderPaymentCards(payments) {
+    const container = $('#payment-cards-container');
+    container.empty();
+    
+    payments.forEach(payment => {
+        const paymentId = payment.name;
+        const paymentType = payment.type || 'Payment';
+        const paymentAmount = payment.amount || '0';
+        const paymentCreatedAt = payment.created || 'Date not available';
+        const paymentStatus = payment.paid ? 'Paid' : 'Pending';
+        const paymentStatusClass = payment.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+        
+        const card = `
+            <div class="payment-card bg-white p-4 mb-4 border rounded-lg shadow hover:shadow-md transition cursor-pointer" 
+                 data-payment-id="${paymentId}"
+                 data-payment-type="${paymentType}"
+                 data-payment-amount="${paymentAmount}"
+                 data-payment-status="${paymentStatus}">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-lg">${paymentType}</h3>
+                        <p class="text-gray-600">Amount: ₹${paymentAmount}</p>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-xs ${paymentStatusClass}">
+                        ${paymentStatus}
+                    </span>
+                </div>
+                <div class="mt-2 text-xs text-gray-500">
+                    <p>${paymentCreatedAt}</p>
+                </div>
+            </div>
+        `;
+        container.append(card);
+    });
+}
+
+
+// Event delegation for payment cards
+$(document).on('click', '.payment-card', function() {
+    const paymentId = $(this).data('payment-id');
+    showPaymentDetails(paymentId);
+});
+
+
+function showPaymentDetails(paymentId) {
+    // Find the clicked card
+    const card = $(`.payment-card[data-payment-id="${paymentId}"]`);
+    
+    // Extract data from the card HTML structure
+    const paymentType = card.find('h3').text();
+    const paymentAmount = card.find('p:contains("Amount:")').text().replace('Amount: ₹', '');
+    const paymentStatus = card.find('span').text().trim(); // Added trim() to ensure clean comparison
+    const isPaid = paymentStatus === 'Paid';
+    
+    // Debug log to verify status
+    console.log(`Payment Status: "${paymentStatus}", isPaid: ${isPaid}`);
+    
+    // Immediately show the modal with the card data
+    $('#payment-modal-content').html(`
+        <form id="payment-form" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Type</label>
+                    <input type="text" 
+                           value="${paymentType || 'N/A'}" 
+                           class="w-full p-2 border rounded bg-gray-50" 
+                           readonly>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-1">Amount</label>
+                    <input type="text" 
+                           value="₹${paymentAmount || '0'}" 
+                           class="w-full p-2 border rounded bg-gray-50" 
+                           readonly>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-1">Status</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" 
+                           value="${paymentStatus || 'Pending'}" 
+                           class="w-full p-2 border rounded bg-gray-50" 
+                           readonly>
+                    ${isPaid ? '<i class="fas fa-check-circle text-green-500"></i>' : ''}
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-1">Payment Mode *</label>
+                <select id="payment-mode" 
+                        class="w-full p-2 border rounded ${isPaid ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}" 
+                        ${isPaid ? 'disabled' : ''}>
+                    <option value="">Select Mode</option>
+                    <option value="Cash" ${paymentStatus.includes('Cash') ? 'selected' : ''}>Cash</option>
+                    <option value="UPI" ${paymentStatus.includes('UPI') ? 'selected' : ''}>UPI</option>
+                </select>
+            </div>
+            <div class="flex justify-end space-x-2 pt-4">
+                ${!isPaid ? `
+                <button type="submit" 
+                        id="proceed-payment-btn" 
+                        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
+                    Proceed to Pay
+                </button>
+                ` : ''}
+                <button type="button" 
+                        id="cancel-payment-btn" 
+                        class="px-4 py-2 ${isPaid ? 'bg-gray-200' : 'bg-gray-300'} text-gray-700 rounded hover:bg-gray-400 transition">
+                    ${isPaid ? 'Close' : 'Cancel'}
+                </button>
+            </div>
+        </form>
+    `);
+    
+    $('#payment-modal').removeClass('hidden');
+
+    // Only fetch details and bind events if payment is not paid
+    if (!isPaid) {
+        $.ajax({
+            url: `/api/method/villa_management.custom_app.get_payment_details?payment_id=${paymentId}`,
+            type: 'GET',
+            headers: {
+                'X-Frappe-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.message) {
+                    const payment = response.message;
+                    $('#payment-mode').val(payment.payment_mode || '');
+                }
+            }
+        });
+
+        $('#payment-form').on('submit', function(e) {
+            e.preventDefault();
+            const paymentMode = $('#payment-mode').val();
+            
+            if (!paymentMode) {
+                alert("Please select a payment mode");
+                return;
+            }
+            
+            if (paymentMode === 'UPI') {
+                $('#payment-modal').addClass('hidden');
+                $('#qr-modal').removeClass('hidden');
+                
+                $('#mark-as-paid-btn').on('click', function() {
+                    processPayment(paymentId, 'UPI');
+                });
+            } else {
+                processPayment(paymentId, paymentMode);
+            }
+        });
+    }
+
+    // Close modal handler
+    $('#cancel-payment-btn, #close-modal-btn').on('click', function() {
+        $('#payment-modal').addClass('hidden');
+    });
+}
+
+
+// function showPaymentDetails(paymentId) {
+//     console.log("[DEBUG] Loading payment details for:", paymentId);
+    
+//     // Show loading state
+//     $('#payment-modal-content').html(`
+//         <div class="text-center py-8">
+//             <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
+//             <p class="mt-2 text-gray-600">Loading payment details...</p>
+//         </div>
+//     `);
+//     $('#payment-modal').removeClass('hidden');
+
+//     // Get payment card element
+//     const card = $(`.payment-card[data-payment-id="${paymentId}"]`);
+//     if (!card.length) {
+//         $('#payment-modal-content').html(`
+//             <div class="text-center py-8 text-red-500">
+//                 <p>Payment record not found</p>
+//             </div>
+//         `);
+//         return;
+//     }
+
+//     // Extract basic data
+//     const paymentType = card.data('payment-type');
+//     const paymentAmount = card.data('payment-amount');
+//     const paymentStatus = card.data('payment-status');
+//     const isPaid = paymentStatus === 'Paid';
+//     const isOtherType = paymentType === 'Other';
+
+//     // Build modal HTML
+//     let modalHTML = `
+//         <form id="payment-form" class="space-y-4">
+//             <div class="grid grid-cols-2 gap-4">
+//                 <div>
+//                     <label class="block text-gray-700 font-medium mb-1">Type</label>
+//                     <input type="text" value="${paymentType}" class="w-full p-2 border rounded bg-gray-50" readonly>
+//                 </div>
+//                 <div>
+//                     <label class="block text-gray-700 font-medium mb-1">Amount</label>
+//                     <input type="text" value="₹${paymentAmount}" class="w-full p-2 border rounded bg-gray-50" readonly>
+//                 </div>
+//             </div>`;
+
+//     // Add description field for "Other" type
+//     if (isOtherType) {
+//         modalHTML += `
+//             <div>
+//                 <label class="block text-gray-700 font-medium mb-1">Description</label>
+//                 <input type="text" id="payment-description-field" 
+//                        class="w-full p-2 border rounded bg-gray-50" readonly>
+//             </div>`;
+//     }
+
+//     // Complete modal HTML
+//     modalHTML += `
+//             <div>
+//                 <label class="block text-gray-700 font-medium mb-1">Status</label>
+//                 <input type="text" value="${paymentStatus}" class="w-full p-2 border rounded bg-gray-50" readonly>
+//             </div>
+//             <div>
+//                 <label class="block text-gray-700 font-medium mb-1">Payment Mode *</label>
+//                 <select id="payment-mode" class="w-full p-2 border rounded ${isPaid ? 'bg-gray-100' : 'bg-white'}" 
+//                         ${isPaid ? 'disabled' : ''}>
+//                     <option value="">Select Mode</option>
+//                     <option value="Cash">Cash</option>
+//                     <option value="UPI">UPI</option>
+//                 </select>
+//             </div>
+//             <div class="flex justify-end space-x-2 pt-4">
+//                 ${!isPaid ? `
+//                 <button type="submit" id="proceed-payment-btn" 
+//                         class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+//                     Proceed to Pay
+//                 </button>` : ''}
+//                 <button type="button" id="cancel-payment-btn" 
+//                         class="px-4 py-2 ${isPaid ? 'bg-gray-200' : 'bg-gray-300'} text-gray-700 rounded hover:bg-gray-400">
+//                     ${isPaid ? 'Close' : 'Cancel'}
+//                 </button>
+//             </div>
+//         </form>`;
+
+//     // Set modal content
+//     $('#payment-modal-content').html(modalHTML);
+
+//     // Fetch payment details from backend
+//     $.ajax({
+//         url: `/api/method/villa_management.custom_app.get_payment_details?payment_id=${paymentId}`,
+//         type: 'GET',
+//         headers: {
+//             'X-Frappe-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+//         },
+//         success: function(response) {
+//             if (response.message) {
+//                 const payment = response.message;
+                
+//                 // Update payment mode
+//                 $('#payment-mode').val(payment.payment_mode || '');
+
+//                 // Update description field if exists
+//                 if (isOtherType) {
+//                     const descriptionValue = payment.description || payment.discription || 'No description available';
+//                     $('#payment-description-field').val(descriptionValue);
+//                 }
+//             }
+//         },
+//         error: function(xhr) {
+//             $('#payment-modal-content').html(`
+//                 <div class="text-center py-8 text-red-500">
+//                     <i class="fas fa-exclamation-circle text-2xl"></i>
+//                     <p class="mt-2">Failed to load payment details</p>
+//                     <button onclick="showPaymentDetails('${paymentId}')" 
+//                             class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
+//                         Try Again
+//                     </button>
+//                 </div>
+//             `);
+//         }
+//     });
+
+//     // Form submission handler
+//     if (!isPaid) {
+//         $('#payment-form').off('submit').on('submit', function(e) {
+//             e.preventDefault();
+//             const paymentMode = $('#payment-mode').val();
+            
+//             if (!paymentMode) {
+//                 alert("Please select a payment mode");
+//                 return;
+//             }
+            
+//             const paymentData = {
+//                 payment_id: paymentId,
+//                 payment_mode: paymentMode
+//             };
+            
+//             if (isOtherType) {
+//                 paymentData.discription = $('#payment-discription-field').val();
+//             }
+            
+//             if (paymentMode === 'UPI') {
+//                 $('#payment-modal').addClass('hidden');
+//                 $('#qr-modal').removeClass('hidden');
+                
+//                 $('#mark-as-paid-btn').off('click').on('click', function() {
+//                     processPayment(paymentData);
+//                 });
+//             } else {
+//                 processPayment(paymentData);
+//             }
+//         });
+//     }
+
+//     // Modal close handler
+//     $('#close-modal-btn, #cancel-payment-btn').off('click').on('click', function() {
+//         $('#payment-modal').addClass('hidden');
+//     });
+// }
+function processPayment(paymentId, paymentMode) {
+    const proceedBtn = $('#proceed-payment-btn');
+    proceedBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+    $.ajax({
+        url: '/api/method/villa_management.custom_app.update_payment',
+        type: 'POST',
+        headers: {
+            'X-Frappe-CSRF-Token': $('meta[name="csrf-token"]').attr('content'),
+            'Accept': 'application/json'
+        },
+        data: {
+            payment_id: paymentId,
+            payment_mode: paymentMode,
+            mark_as_paid: 1
+        },
+        success: function(response) {
+            if (response.message) {
+                if (response.message.status === 'success') {
+                    $('#payment-modal, #qr-modal').addClass('hidden');
+                    // $('#success-modal').removeClass('hidden');
+                     const successModal = $('#success-modal').removeClass('hidden');
+                    fetchPayments();
+
+                     $('#close-success-modal-btn').off('click').on('click', function() {
+                    successModal.addClass('hidden');
+                });
+                } else {
+                    showPaymentError(response.message.message || "Payment update failed");
+                }
+            } else {
+                showPaymentError("Invalid response format");
+            }
+        },
+        error: function(xhr) {
+            let errorMsg = "Payment processing failed";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            }
+            showPaymentError(errorMsg);
+        },
+        complete: function() {
+            proceedBtn.prop('disabled', false).text('Proceed to Pay');
+        }
+    });
+}
+
+// function processPayment(paymentData) {
+//     const proceedBtn = $('#proceed-payment-btn');
+//     proceedBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+//     $.ajax({
+//         url: '/api/method/villa_management.custom_app.update_payment',
+//         type: 'POST',
+//         headers: {
+//             'X-Frappe-CSRF-Token': $('meta[name="csrf-token"]').attr('content'),
+//             'Accept': 'application/json'
+//         },
+//         data: paymentData,
+//         success: function(response) {
+//             if (response.message?.status === 'success') {
+//                 $('#payment-modal, #qr-modal').addClass('hidden');
+//                 $('#success-modal').removeClass('hidden');
+//                 fetchPayments();
+//             } else {
+//                 showPaymentError(response.message?.message || "Payment update failed");
+//             }
+//         },
+//         error: function(xhr) {
+//             showPaymentError(xhr.responseJSON?.message || "Payment processing failed");
+//         },
+//         complete: function() {
+//             proceedBtn.prop('disabled', false).text('Proceed to Pay');
+//         }
+//     });
+// }
+function showPaymentError(message) {
+    const errorElement = $('#payment-error-message');
+    errorElement.removeClass('hidden').html(`
+        <div class="p-4 border border-red-300 bg-red-50 rounded-lg">
+            ${message}
+            <button onclick="fetchPayments()" class="mt-2 text-blue-500 hover:underline">
+                Try Again
+            </button>
+        </div>
+    `);
+}
+
+// Initialize modal handlers
+$(document).ready(function() {
+    // Close QR modal
+    $('#close-qr-modal-btn').on('click', function() {
+        $('#qr-modal').addClass('hidden');
+    });
+    // Close payment modal handler
+    $('#close-modal-btn').on('click', function() {
+        $('#payment-modal').addClass('hidden');
+    });
+    
+    // Global success modal close handler
+    $('#close-success-modal-btn').on('click', function() {
+        $('#success-modal').addClass('hidden');
+    });
+    
+    // Load payments when payments section is shown
+    $('[onclick*="payments"]').on('click', fetchPayments);
+});
+
+   </script>
+</head>
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 sidebar h-screen p-5">
+            <div class="flex items-center mb-6">
+                <img class="w-10 h-10 rounded-full" height="40" src="images/Letter _V_ Logo Design Ideas.jpeg" width="40"/>
+                <span class="ml-3 text-xl font-semibold">VillaEase</span>
+            </div>
+            <ul>
+                <li class="mb-4">
+                    <a class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-700" onclick="showContent('welcome')">
+                        <i class="fas fa-home mr-3"></i>Dashboard
+                    </a>
+                </li>
+                <li class="mb-4">
+                    <a class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-700" onclick="showContent('profile')">
+                        <i class="fas fa-user mr-3"></i>Profile Updation
+                    </a>
+                </li>
+                <li class="mb-4">
+                    <a class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-700" onclick="showContent('maintenance')">
+                        <i class="fas fa-tools mr-3"></i>Maintenance Service
+                    </a>
+                </li>
+                <li class="mb-4">
+    <a class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-700" onclick="showContent('payments')">
+        <i class="fas fa-money-bill-wave mr-3"></i>Payments
+    </a>
+</li>
+                <li class="mb-4">
+                    <a class="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-700" onclick="logout()">
+                        <i class="fas fa-user mr-3"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- Main Content -->
+        <div class="flex-1 p-6 main-content rounded-tl-3xl">
+            <!-- Welcome Section -->
+            <div class="content" id="welcome">
+                <h2 class="text-2xl font-semibold mb-4">Welcome to VillaEase</h2>
+                <p class="mb-4">
+                    VillaEase is your comprehensive villa management system. Our platform provides a seamless experience for residents to manage their profiles, request services, make payments, report complaints, view notifications, and stay updated with newly held events.
+                </p>
+                <p>
+                    Our goal is to ensure that your stay at the villa is as comfortable and convenient as possible. Explore the various features of VillaEase to make the most out of your living experience.
+                </p>
+            </div>
+            <!-- Profile Updation Section -->
+            <div class="content hidden" id="profile">
+                <h2 class="text-2xl font-semibold mb-4">Profile Updation</h2>
+                <form id="profile-form" class="profile-grid" method="POST">
+                    <!-- Full Name -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="name" name="name" class="w-full p-2 border rounded-lg" value="{{ resident.full_name if resident else '' }}" disabled>
+                    </div>
+                    <!-- Date of Birth -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-calendar"></i> Date of Birth</label>
+                        <input type="date" id="dob" name="dob" class="w-full p-2 border rounded-lg" value="{{ resident.date_of_birth if resident else '' }}" disabled>
+                    </div>
+                    <!-- Gender -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-venus-mars"></i> Gender</label>
+                        <select id="gender" name="gender" class="w-full p-2 border rounded-lg" disabled>
+                            <option value="Male" {% if resident.gender == "Male" %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if resident.gender == "Female" %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if resident.gender == "Other" %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <!-- Place -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-map-marker-alt"></i> Place</label>
+                        <input type="text" id="place" name="place" class="w-full p-2 border rounded-lg" value="{{ resident.place if resident else '' }}" disabled>
+                    </div>
+                    <!-- Contact Number -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-phone"></i> Contact Number</label>
+                        <input type="tel" id="contact_number" name="contact_number" class="w-full p-2 border rounded-lg" value="{{ resident.contact_number if resident else '' }}" disabled>
+                    </div>
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-job"></i>Job Profile</label>
+                        <input type="text" id="job_profile" name="job_profile" class="w-full p-2 border rounded-lg" value="{{ resident.job_profile if resident else '' }}" disabled>
+                    </div>
+                    <!-- Family Members Table -->
+                    <div class="profile-field mb-4">
+                        <label class="block text-gray-700"><i class="fas fa-users"></i> Family Members</label>
+                        <table id="family-members" class="w-full border-collapse" disabled>
+                            <thead>
+                                <tr>
+                                    <th class="border p-2">Full Name</th>
+                                    <th class="border p-2">Age</th>
+                                    <th class="border p-2">Gender</th>
+                                    <th class="border p-2">Occupation</th>
+                                    <th class="border p-2">Relation</th>
+                                    <th class="border p-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if resident.family_members %}
+                {% for member in resident.family_members %}
+                    <tr>
+                        <td><input type="text" class="w-full p-2 border rounded-lg" name="family_full_name" value="{{ member.family_full_name }}" disabled></td>
+                        <td><input type="number" class="w-full p-2 border rounded-lg" name="age" value="{{ member.age }}" disabled></td>
+                        <td>
+                            <select class="w-full p-2 border rounded-lg" name="gender" disabled>
+                                <option value="Male" {% if member.gender == "Male" %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if member.gender == "Female" %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if member.gender == "Other" %}selected{% endif %}>Other</option>
+                            </select>
+                        </td>
+                        <td><input type="text" class="w-full p-2 border rounded-lg" name="occupation" value="{{ member.occupation }}" disabled></td>
+                        <td><input type="text" class="w-full p-2 border rounded-lg" name="relation" value="{{ member.relation }}" disabled></td>
+                        <td><button type="button" class="remove-row bg-red-500 text-white p-2 rounded-lg">Remove</button></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No family members found.</td>
+                </tr>
+            {% endif %}
+                            </tbody>
+                        </table>
+                        <button type="button" id="add-family-member" class="mt-2 bg-blue-500 text-white p-2 rounded-lg">Add Family Member</button>
+                    </div>
+                    <!-- Edit and Save Buttons -->
+                    <button type="button" id="edit-btn" class="edit-btn bg-blue-500 text-white p-2 rounded-lg">Edit</button>
+                    <button type="submit" id="save-btn" class="save-btn bg-green-500 text-white p-2 rounded-lg" style="display: none;">Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Maintenance Section -->
+            <div class="content hidden" id="maintenance">
+                <h2 class="text-2xl font-semibold mb-4">Maintenance Requests</h2>
+                <div class="list-section">
+                    <table id="maintenance-requests-table" class="w-full border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="border p-2">Service Type</th>
+                                <th class="border p-2">Submitted At</th>
+                                <th class="border p-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+          <div class="content hidden" id="payments">
+    <h2 class="text-2xl font-semibold mb-4">Payments</h2>
+    
+    <!-- Payment Status Messages -->
+    <div id="payment-loading-status" class="hidden text-center p-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+        <p>Loading payments...</p>
+    </div>
+    
+    <div id="payment-error-message" class="hidden text-center p-4 text-red-500"></div>
+    
+    <!-- Payment Cards Container -->
+    <div id="payment-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Cards will be inserted here by JavaScript -->
+    </div>
+</div>
+
+
+        </div>
+    </div>
+
+    <!-- Payment Modal (Moved outside content div) -->
+<div id="payment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Payment Details</h3>
+            <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-2xl">
+                &times;
+            </button>
+        </div>
+        <div id="payment-modal-content">
+            <!-- Content will be dynamically inserted here -->
+        </div>
+    </div>
+</div>
+
+<!-- QR Modal -->
+<div id="qr-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md"> <!-- Increased max width -->
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Scan QR to Pay</h3>
+            <button id="close-qr-modal-btn" class="text-gray-500 hover:text-gray-700 text-2xl">
+                &times;
+            </button>
+        </div>
+        <div class="text-center">
+            <!-- Improved QR Code Container -->
+            <div class="mx-auto mb-4 p-4 bg-white rounded border border-gray-200 flex justify-center">
+                <img src="/images/qrcode.jpeg" alt="UPI QR Code" 
+                     class="w-100 h-100 object-contain"> <!-- Larger and consistent dimensions -->
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-4">Scan this QR code using any UPI app to complete payment</p>
+            
+            <!-- Improved Button -->
+            <button id="mark-as-paid-btn" 
+                    class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-lg font-medium">
+                Mark as Paid
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-sm">
+        <div class="text-center">
+            <div class="text-green-500 text-5xl mb-3">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Payment Successful!</h3>
+            <p class="text-gray-600 mb-4">Your payment has been processed successfully.</p>
+            <button id="close-success-modal-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2023 VillaEase. All rights reserved.
+    </div>
+
+    <script src="/assests/frappe/js/frappe-web.bundle.js"></script>
+    <script src="/assests/frappe/js/libs.bundle.js"></script>
+</body>
+</html>

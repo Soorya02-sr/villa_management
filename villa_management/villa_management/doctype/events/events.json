@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "EV-.###",
+ "creation": "2025-03-04 15:50:17.880437",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "event_name",
+  "type",
+  "event_date",
+  "event_time",
+  "budget_planning",
+  "expected_budget",
+  "actual_budget",
+  "created_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_name",
+   "fieldtype": "Data",
+   "label": "Event Name"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nSeasonal Events\nTrips\nSpecial Events"
+  },
+  {
+   "fieldname": "event_date",
+   "fieldtype": "Date",
+   "label": "Event Date"
+  },
+  {
+   "fieldname": "budget_planning",
+   "fieldtype": "Table",
+   "label": "Budget Planning",
+   "options": "Budget Planning"
+  },
+  {
+   "fieldname": "expected_budget",
+   "fieldtype": "Float",
+   "label": "Expected Budget",
+   "read_only": 1
+  },
+  {
+   "fieldname": "actual_budget",
+   "fieldtype": "Float",
+   "label": "Actual Budget",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_at",
+   "fieldtype": "Datetime",
+   "label": "Created At"
+  },
+  {
+   "fieldname": "event_time",
+   "fieldtype": "Time",
+   "label": "Event Time"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-28 15:33:03.812020",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Events",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Residents",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

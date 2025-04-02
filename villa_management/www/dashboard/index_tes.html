@@ -1,0 +1,361 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VILLAEASE - Smart Villa Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #2c3e50;
+            background: #f5f5f5;
+        }
+        header {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 15px 0;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .hero {
+            height: 100vh;
+            background: url('images/img1.jpeg') no-repeat center center/cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            flex-direction: column;
+            position: relative;
+        }
+        .hero h1 {
+            font-size: 50px;
+            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.7);
+        }
+        .hero p {
+            font-size: 22px;
+            margin-top: 10px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin-top: 20px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 20px;
+        }
+        .features-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            padding: 60px 20px;
+            background: #ffffff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .feature-box {
+            background: #ecf0f1;
+            padding: 30px;
+            width: 300px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .feature-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        /* Popup Form Styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        .popup-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 450px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
+            font-family: 'Arial', sans-serif;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .popup-form h2 {
+            margin-bottom: 20px;
+            font-size: 26px;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+        }
+        .popup-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+            font-size: 14px;
+        }
+        .popup-form input, .popup-form select, .popup-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #2c3e50;
+            background: #f9f9f9;
+            transition: border-color 0.3s ease;
+        }
+        .popup-form input:focus, .popup-form select:focus, .popup-form textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            background: #fff;
+        }
+        .popup-form textarea {
+            resize: vertical;
+            height: 120px;
+        }
+        .popup-form button {
+            width: 100%;
+            padding: 14px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .popup-form button:hover {
+            background: #2980b9;
+        }
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            color: #95a5a6;
+            transition: color 0.3s ease;
+        }
+        .close-btn:hover {
+            color: #e74c3c;
+        }
+
+        /* Animation for popup */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">VILLAEASE</div>
+            <ul>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/new">Dashboard</a></li>
+                <li><a href="#" onclick="openPopup()">Maintenance Request</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <h1>Smart Living, Simplified</h1>
+        <p>Seamless management of your villa community.</p>
+        <a href="#features" class="btn">Explore Features</a>
+    </section>
+
+    <section id="features" class="features-container">
+        <!-- Villa and Resident Details -->
+        <div class="feature-box">
+            <h3>Villa & Resident Details</h3>
+            <p>Manage villa information, resident profiles, and community updates.</p>
+        </div>
+        <!-- Maintenance Service -->
+        <div class="feature-box">
+            <h3>Maintenance Service</h3>
+            <p>Request and track maintenance services for your villa and common areas.</p>
+        </div>
+        <!-- Security -->
+        <div class="feature-box">
+            <h3>Security</h3>
+            <p>Ensure a safe environment with 24/7 security monitoring and controlled access.</p>
+        </div>
+        <!-- Visitor Logs -->
+        <div class="feature-box">
+            <h3>Visitor Logs</h3>
+            <p>Track and manage visitor entries with real-time logs and approvals.</p>
+        </div>
+        <!-- Payment -->
+        <div class="feature-box">
+            <h3>Payment</h3>
+            <p>Pay villa dues, maintenance fees, and other charges securely online.</p>
+        </div>
+    </section>
+
+    <!-- Popup Form for Maintenance Request -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-form">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <h2>Maintenance Request</h2>
+            <form id="maintenanceForm">
+                <label for="serviceType">Service Type</label>
+                <select id="serviceType" name="serviceType">
+                    <option value="Plumbing Services">Plumbing Services</option>
+                    <option value="Electrical Services">Electrical Services</option>
+                    <option value="HVAC">HVAC</option>
+                    <option value="Appliances Services">Appliances Services</option>
+                    <option value="Emergency Repairs">Emergency Repairs</option>
+                    <option value="Home Automation Integration">Home Automation Integration</option>
+                </select>
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Enter a detailed description of the issue..."></textarea>
+
+                <button type="submit">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 VILLAEASE. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Function to open the popup form
+        function openPopup() {
+            document.getElementById('popupOverlay').style.display = 'flex';
+        }
+
+        // Function to close the popup form
+        function closePopup() {
+            document.getElementById('popupOverlay').style.display = 'none';
+        }
+
+        document.getElementById('maintenanceForm').addEventListener('submit', async function (event) {
+            event.preventDefault(); // Prevent page refresh
+
+            const serviceType = document.getElementById('serviceType').value;
+            const description = document.getElementById('description').value;
+
+            // Prepare the data to send to the server
+            const formData = {
+                service_type: serviceType,
+                description: description,
+                submitted_at: new Date().toISOString() // Current timestamp
+            };
+            console.log(formData); // Log form data for debugging
+
+            try {
+                // Send the data to the server using Fetch API
+                const response = await fetch('/api/method/villa_management.custom_app.create_maintenance_request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Frappe-CSRF-Token': '{{ csrf_token }}' // CSRF token for security
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    // If the response status is not OK, throw an error
+                    throw new Error(`Server responded with an error: ${response.status}`);
+                }
+
+                // Parse the response as JSON
+                const result = await response.json();
+                 console.log('Server response:', result); 
+                // Check if result.message and status exist
+                if (result && result.status === 'success') {
+                    alert('Maintenance request submitted successfully!');
+                    closePopup();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+
+    </script>
+</body>
+</html>

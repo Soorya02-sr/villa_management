@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup | Villaease</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .hidden {
+      display: none;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <form class="signup-form signup-form-villaease" role="form" id="signup-form">
+    <div class="page-card-body">
+      <!-- General Fields -->
+      <div id="General_fields">
+        <div class="form-group">
+          <label class="form-label sr-only" for="full_name">{{ _("Full Name") }}</label>
+          <input
+            type="text"
+            id="full_name"
+            class="form-control"
+            placeholder="{{ _('Full Name') }}"
+            required
+            autofocus
+          >
+        </div>
+        <!-- Date of Birth Field -->
+        <div class="form-group">
+          <label class="form-label sr-only" for="dob">{{ _("Date of Birth") }}</label>
+          <input
+            type="date"
+            id="dob"
+            class="form-control"
+            placeholder="{{ _('Date of Birth') }}"
+            required
+          >
+        </div>
+        <!-- Gender Field -->
+        <div class="form-group">
+          <label class="form-label sr-only" for="gender">{{ _("Gender") }}</label>
+          <select
+            id="gender"
+            class="form-control form-control-select"
+            required
+          >
+            <option value="">Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label sr-only" for="place">{{ _("Place") }}</label>
+          <input
+            type="text"
+            id="place"
+            class="form-control"
+            placeholder="{{ _('Place') }}"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label sr-only" for="contact_number">{{ _("Contact Number") }}</label>
+          <input
+            type="tel"
+            id="contact_number"
+            class="form-control"
+            placeholder="{{ _('Contact Number') }}"
+            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" 
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label sr-only" for="email">{{ _("Email") }}</label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            placeholder="{{ _('Email') }}"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label sr-only" for="create_password">{{ _("Create Password") }}</label>
+          <input
+            type="password"
+            id="create_password"
+            class="form-control"
+            placeholder="{{ _('Create Password') }}"
+            pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/"
+            required
+          >
+        </div>
+        <div class="form-group">
+          <label class="form-label sr-only" for="confirm_password">{{ _("Confirm Password") }}</label>
+          <input
+            type="password"
+            id="confirm_password"
+            class="form-control"
+            placeholder="{{ _('Confirm Password') }}"
+            required
+          >
+        </div>
+        <p id="password-error" class="hidden text-red-500 text-sm">Passwords do not match</p>
+      </div>
+    </div>
+
+    <div class="page-card-actions">
+      <button class="btn btn-sm btn-primary btn-block btn-signup" type="submit" id="signupBtn">
+        {{ _("Sign up") }}
+      </button>
+      <p class="text-center sign-up-message">
+        <a href="#login" class="blue">{{ _("Have an account? Login") }}</a>
+      </p>
+    </div>
+  </form>
+
+  <script>
+    frappe.ready(function () {
+      // Handle signup button click
+      $("#signupBtn").click(function(e){
+        signup_villaease_connect(e);
+      });
+    });
+
+    const signup_villaease_connect = (e) => {
+      e.preventDefault();
+
+      let email = ($("#email").val() || "").trim();
+      let full_name = frappe.utils.xss_sanitise($("#full_name").val() || "").trim();
+      let dob = frappe.utils.xss_sanitise($("#dob").val() || "").trim();
+      let gender = frappe.utils.xss_sanitise($("#gender").val() || "").trim();
+      let place = frappe.utils.xss_sanitise($("#place").val() || "").trim();
+      let contact_number = frappe.utils.xss_sanitise($("#contact_number").val() || "").trim();
+      let create_password = frappe.utils.xss_sanitise($("#create_password").val() || "").trim();
+      let confirm_password = frappe.utils.xss_sanitise($("#confirm_password").val() || "").trim();
+
+      if (create_password === "" || confirm_password === "") {
+        frappe.msgprint("Password fields cannot be empty!", "Error");
+        return false;
+      }
+
+      if (create_password !== confirm_password) {
+        document.getElementById("password-error").classList.remove("hidden");
+        return false;
+      } else {
+        document.getElementById("password-error").classList.add("hidden");
+      }
+
+      frappe.call({
+        method: "villa_management.custom_app.sign_up",
+        freeze: true,
+        freeze_message: "Signing up. Please wait...",
+        args: {
+          full_name: full_name,
+          email: email,
+          dob: dob,
+          gender: gender,
+          contact_number: contact_number,
+          create_password: create_password,
+          place: place
+        },
+        callback: function(response) {
+          if (response.message.status === "success") {
+            frappe.msgprint(response.message.message, "Success");
+            setTimeout(() => {
+              window.location.href = response.message.redirect_url;
+            }, 1500);
+          } else {
+            frappe.msgprint(response.message.message, "Error");
+          }
+        }
+      });
+      return false;
+    };
+  </script>
+</body>
+</html>

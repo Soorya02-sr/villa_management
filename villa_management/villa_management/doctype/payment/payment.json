@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "P-.####",
+ "creation": "2025-03-28 11:52:36.652140",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "discription",
+  "amount",
+  "payment_mode",
+  "resident",
+  "resident_name",
+  "created",
+  "paid"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nMonthly Fund\nOther"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "payment_mode",
+   "fieldtype": "Select",
+   "label": "Payment Mode",
+   "options": "\nCash\nUPI"
+  },
+  {
+   "fieldname": "resident",
+   "fieldtype": "Link",
+   "label": "Resident",
+   "options": "Residents Details"
+  },
+  {
+   "fieldname": "created",
+   "fieldtype": "Datetime",
+   "label": "Created"
+  },
+  {
+   "default": "0",
+   "fieldname": "paid",
+   "fieldtype": "Check",
+   "label": "Paid"
+  },
+  {
+   "fetch_from": "resident.full_name",
+   "fieldname": "resident_name",
+   "fieldtype": "Link",
+   "label": "Resident Name",
+   "options": "Residents Details"
+  },
+  {
+   "depends_on": "eval:doc.type=='Other'",
+   "fieldname": "discription",
+   "fieldtype": "Data",
+   "label": "Discription"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-31 18:39:50.172691",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Payment",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

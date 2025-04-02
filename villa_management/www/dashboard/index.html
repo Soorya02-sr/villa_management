@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VillaEase</title>
+
+  <!-- Bootstrap & jQuery UI Styles -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+  <!-- Font Awesome Icons -->
+  <meta name="csrf-token" content="{{ frappe.csrf_token }}">
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico"> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+
+  <style>
+    /* Background Image */
+    body {
+      background: url('/images/res1.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Centered Button */
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    /* Event Cards Section */
+    #eventList {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: #ffcc00;
+    }
+
+    /* Make all carousel slides take full screen height */
+    .carousel-item {
+      height: 100vh;
+      /* Each slide will fill the full screen */
+    }
+
+    /* Ensure images cover the full height and width properly */
+    .carousel-item img {
+      height: 100vh;
+      /* Ensure the image takes full viewport height */
+      width: 100%;
+      /* Make sure the image covers full width */
+      object-fit: cover;
+      /* Prevent distortion, crop excess */
+    }
+
+    .sticky-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      /* Semi-transparent background */
+      color: white;
+      padding: 15px 0;
+      z-index: 1000;
+      /* Ensures it stays on top */
+      transition: all 0.3s ease-in-out;
+    }
+
+    .nav-links .nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links .nav-link:hover {
+      color: #ffcc00;
+    }
+
+    body {
+      padding-top: 70px;
+      /* Prevents content from being hidden behind sticky header */
+    }
+
+    .event-list {
+      max-height: 500px;
+      /* Adjust height as needed */
+      width: 95%;
+      /* Matches Villa Team container */
+      max-width: 1200px;
+      /* Ensures consistency with Villa Team section */
+      overflow-y: auto;
+      /* Enable vertical scrolling */
+      overflow-x: hidden;
+      /* Prevent horizontal scrolling */
+      padding: 15px;
+      border: 1px solid #ddd;
+      /* Optional: Adds a border for better visibility */
+      border-radius: 8px;
+      background: white;
+      /* Keeps it visually distinct */
+      margin: auto;
+      /* Centers the container */
+    }
+
+    /* Custom scrollbar style */
+    .event-list::-webkit-scrollbar {
+      width: 6px;
+      /* Thin scrollbar */
+    }
+
+    .event-list::-webkit-scrollbar-thumb {
+      background: #aaa;
+      /* Light gray scrollbar */
+      border-radius: 10px;
+      /* Rounded edges */
+    }
+
+    .event-list::-webkit-scrollbar-track {
+      background: #f4f4f4;
+      /* Subtle background */
+    }
+
+    .scroll-bottom-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 300;
+      /* Thinner text */
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      /* Adds space between icon & text */
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      z-index: 1000;
+    }
+
+    .scroll-bottom-btn:hover {
+      background: rgba(255, 204, 0, 0.9);
+      transform: translateY(3px);
+      /* Slight movement effect */
+    }
+
+    .scroll-bottom-btn i {
+      font-size: 16px;
+      /* Slightly smaller icon */
+    }
+
+    .file-chip {
+      background-color: #d4edda;
+      /* Light green */
+      border: 2px solid #28a745;
+      /* Green border */
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #155724;
+      /* Dark green text */
+      display: inline-block;
+      margin: 4px;
+    }
+
+    .card {
+      transition: all 0.3s ease-in-out;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .form-control-lg {
+      font-size: 18px;
+      padding: 12px;
+    }
+  </style>
+</head>
+
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; color: #2c3e50; background: #f5f5f5;">
+  <header class="sticky-header">
+    <nav class="d-flex justify-content-between align-items-center px-4">
+      <div class="logo">
+        <h2 class="fw-bold text-light"><span style="color:#ffcc00;">VILLA</span>EASE</h2>
+      </div>
+      <ul class="nav-links d-flex list-unstyled m-0">
+        <li class="mx-3"><a href="#members" class="nav-link">Members</a></li>
+        <li class="mx-3"><a href="#events" class="nav-link">Events</a></li>
+        <li class="mx-3"><a href="#contact" class="nav-link">Contact</a></li>
+        <li class="mx-3"><a href="/new" class="nav-link">Dashboard</a></li>
+        <li class="mx-3"><a href="#" onclick="openPopup()" class="nav-link">Maintenance Request</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div>
+    <section id="new" class="features-container position-relative">
+      <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
+            aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
+            aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
+            aria-label="Slide 3"></button>
+        </div>
+        <div class="carousel-inner">
+          <div class="carousel-item active" data-bs-interval="2000">
+            <img src="/images/img1.jpeg" class="d-block w-100" alt="..." style="height: 100vh; object-fit: cover;">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>First Slide Label</h5>
+              <p>Some representative placeholder content for the first slide.</p>
+            </div>
+          </div>
+          <div class="carousel-item" data-bs-interval="2000">
+            <img src="/images/res2.jpeg" class="d-block w-100" alt="..." style="height: 100vh; width: 100%;">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>Second slide label</h5>
+              <p>Some representative placeholder content for the second slide.</p>
+            </div>
+          </div>
+          <div class="carousel-item" data-bs-interval="2000">
+            <img src="/images/res1.jpeg" class="d-block w-100" alt="..." style="height: 100vh; width: 100%;">
+            <div class="carousel-caption d-none d-md-block">
+              <h5>Third slide label</h5>
+              <p>Some representative placeholder content for the third slide.</p>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
+          data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
+          data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    </section>
+
+    <div id="scrollToBottom" class="scroll-bottom-btn">
+      <i class="fas fa-chevron-down"></i> <span>Scroll to Bottom</span>
+    </div>
+
+
+<section id="features" class="features-container">
+  <div style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8; text-align: center;">
+    <h2 style="margin-top: 40px; font-size: 28px; color: #333;">Our Villa Team</h2>
+
+    <div style="width: 95%; background-color: white; margin: 20px auto; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+      <!-- Container for Residents -->
+      <div id="villa-team-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin-bottom: 30px;">
+        <!-- Residents will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+</section>
+  </div>
+
+  <div>
+    <section id="new" class="features-container">
+      <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
+            aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
+            aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
+            aria-label="Slide 3"></button>
+        </div>
+        <div class="carousel-inner">
+
+          <div class="button-container">
+            <button id="centerButton" data-bs-toggle="modal" data-bs-target="#customModal"
+              class="btn btn-primary btn-lg shadow">
+              + Add Event
+            </button>
+          </div>
+
+          <!-- Bootstrap Modal with "Add Event" Heading -->
+          <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Add Event</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- 2x2 Grid Layout -->
+                  <div class="container">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <label for="datepicker" class="form-label">Choose a Date:</label>
+                        <input type="date" id="datepicker" class="form-control" placeholder="Select date">
+                      </div>
+                      <div class="col-md-6">
+  <label for="timepicker" class="form-label">Choose a Time:</label>
+  <input type="time" id="timepicker" class="form-control" 
+         min="09:00" max="18:00" step="900" required>
+</div>
+                    </div>
+                    <div class="row mt-3">
+                      <div class="col-md-6">
+                        <label for="eventDropdown" class="form-label">Select an Event:</label>
+                        <select id="eventDropdown" class="form-select">
+                          <option value="">-- Select Event --</option>
+                          <option value="seasonal">Seasonal Events</option>
+                          <option value="trips">Trips</option>
+                          <option value="special">Special Events</option>
+                        </select>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="eventDescription" class="form-label">Event Name:</label>
+                        <input type="text" id="eventDescription" class="form-control" placeholder="Enter Event Name">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" id="submitEvent" class="btn btn-primary">Submit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Card Section -->
+          <div class="container mt-4">
+            <section id="events" class="features-container">
+              <h3 class="text-center text-dark fw-bold mb-3">Upcoming Events</h3>
+
+              <!-- Scrollable Event Container -->
+              <div class="event-list mx-auto">
+                <div class="row justify-content-center g-3" id="eventsContainer"></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+          <!-- Upload Modal -->
+          <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Upload Files for <span id="uploadEventName"></span></h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- File Input -->
+                  <input type="file" id="fileInput" class="form-control" accept=".pdf,.doc,.docx,.jpg,.png" multiple>
+
+                  <!-- Selected Files (Before Upload) -->
+                  <p class="mt-2"><strong>Selected Files:</strong></p>
+                  <ul id="fileList" class="mt-2"></ul>
+
+                  <hr>
+
+                  <!-- Uploaded Files -->
+                  <p class="mt-2"><strong>Uploaded Files:</strong></p>
+                  <div id="uploadedFilesList" class="mt-2 d-flex flex-wrap gap-2"></div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-primary" id="saveFileBtn">Upload</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Third Slide -->
+        <div class="carousel-item" data-bs-interval="2000">
+          <img src="/images/res1.jpeg" class="d-block w-100" alt="..." style="height: 750px; width: 100%;">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>Third slide label</h5>
+            <p>Some representative placeholder content for the third slide.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Carousel Controls -->
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
+        data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
+        data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </section>
+  </div>
+
+  <div class="container my-5 py-5">
+    <section id="contact" class="features-container">
+      <div class="row align-items-center g-4">
+        <!-- Left side text -->
+        <div class="col-md-6 text-md-start text-center">
+          <h2 class="fw-bold text-primary display-5">Let's Connect</h2>
+        </div>
+
+        <!-- Right-aligned card -->
+        <div class="col-md-6 d-flex justify-content-md-end justify-content-center">
+          <div class="card shadow-lg p-4" style="max-width: 500px; border-radius: 15px; background: #f8f9fa;">
+            <div class="card-body">
+              <h2 class="text-center text-success fw-bold" style="font-size: 26px;">Complaint Registration</h2>
+              <form id="complaintForm">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold text-dark" style="font-size: 18px;">Complaint:</label>
+                  <textarea name="description" id="complaintDescription" class="form-control form-control-lg"
+                    placeholder="Write your complaint..." rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100 fw-bold"
+                  style="font-size: 20px; border-radius: 8px;">Submit Complaint</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer style="background:#222; color:#fff; padding:40px 0; text-align:center;">
+    <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-around;">
+
+      <!-- Logo & About -->
+      <div style="flex:1; min-width:250px; padding:20px;">
+        <h5 style="font-size:24px; font-weight:bold;">
+          <span style="color:#ffcc00;">VILLA</span>EASE
+        </h5>
+        <p style="font-size:14px; line-height:1.6;">Find your dream villa with ease. Luxury stays, seamless bookings,
+          and unforgettable experiences.</p>
+      </div>
+
+      <!-- Quick Links -->
+      <div style="flex:1; min-width:250px; padding:20px;">
+        <h5 style="font-size:18px; margin-bottom:10px;">Quick Links</h5>
+        <a href="#" style="display:block; color:#ffcc00; text-decoration:none; margin:5px 0;">Home</a>
+        <a href="#" style="display:block; color:#ffcc00; text-decoration:none; margin:5px 0;">About Us</a>
+        <a href="#" style="display:block; color:#ffcc00; text-decoration:none; margin:5px 0;">Villas</a>
+        <a href="#" style="display:block; color:#ffcc00; text-decoration:none; margin:5px 0;">Contact</a>
+      </div>
+
+      <!-- Contact Info -->
+      <div style="flex:1; min-width:250px; padding:20px;">
+        <h5 style="font-size:18px; margin-bottom:10px;">Contact</h5>
+        <p style="margin:5px 0;"><i class="fas fa-home"></i> Dubai, UAE</p>
+        <p style="margin:5px 0;"><i class="fas fa-envelope"></i> support@villaease.com</p>
+        <p style="margin:5px 0;"><i class="fas fa-phone"></i> +971 50 123 4567</p>
+      </div>
+
+      <!-- Social Media -->
+      <div style="flex:1; min-width:250px; padding:20px;">
+        <h5 style="font-size:18px; margin-bottom:10px;">Follow Us</h5>
+        <a href="#"
+          style="display:inline-block; width:40px; height:40px; background:#ffcc00; color:#222; text-align:center; line-height:40px; border-radius:50%; margin:5px;"><i
+            class="fab fa-facebook-f"></i></a>
+        <a href="#"
+          style="display:inline-block; width:40px; height:40px; background:#ffcc00; color:#222; text-align:center; line-height:40px; border-radius:50%; margin:5px;"><i
+            class="fab fa-twitter"></i></a>
+        <a href="#"
+          style="display:inline-block; width:40px; height:40px; background:#ffcc00; color:#222; text-align:center; line-height:40px; border-radius:50%; margin:5px;"><i
+            class="fab fa-instagram"></i></a>
+        <a href="#"
+          style="display:inline-block; width:40px; height:40px; background:#ffcc00; color:#222; text-align:center; line-height:40px; border-radius:50%; margin:5px;"><i
+            class="fab fa-linkedin"></i></a>
+      </div>
+
+    </div>
+
+    <!-- Copyright -->
+    <div style="margin-top:20px; background:rgba(255, 255, 255, 0.1); padding:10px;">
+      © 2025 VILLAEASE. All Rights Reserved.
+    </div>
+  </footer>
+
+  <div id="popupOverlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; z-index: 1001;">
+    <div
+      style="background: white; padding: 30px; border-radius: 12px; width: 450px; box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2); font-family: 'Arial', sans-serif;">
+      <span onclick="closePopup()"
+        style="float: right; cursor: pointer; font-size: 24px; color: #95a5a6; transition: color 0.3s ease;">&times;</span>
+      <h2 style="margin-bottom: 20px; font-size: 26px; color: #2c3e50; font-weight: 600; text-align: center;">
+        Maintenance Request</h2>
+      <form id="maintenanceForm">
+        <label for="serviceType"
+          style="display: block; margin-bottom: 8px; font-weight: 500; color: #34495e; font-size: 14px;">Service
+          Type</label>
+        <select id="serviceType" name="serviceType"
+          style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; color: #2c3e50; background: #f9f9f9;">
+          <option value="Plumbing Services">Plumbing Services</option>
+          <option value="Electrical Services">Electrical Services</option>
+          <option value="HVAC">HVAC</option>
+          <option value="Appliances Services">Appliances Services</option>
+          <option value="Emergency Repairs">Emergency Repairs</option>
+          <option value="Home Automation Integration">Home Automation Integration</option>
+        </select>
+
+        <label for="maintenanceDescription"
+          style="display: block; margin-bottom: 8px; font-weight: 500; color: #34495e; font-size: 14px;">Description</label>
+        <textarea id="maintenanceDescription" name="description"
+          style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; color: #2c3e50; background: #f9f9f9;"></textarea>
+
+        <button type="submit"
+          style="width: 100%; padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer;">Submit Request</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    
+// Open and close popup functions
+  function openPopup() {
+    document.getElementById('popupOverlay').style.display = 'flex';
+  }
+
+  function closePopup() {
+    document.getElementById('popupOverlay').style.display = 'none';
+  }
+document.addEventListener('DOMContentLoaded', function () {
+  console.log("DOM fully loaded and parsed"); // Debugging
+
+  // Initialize datepicker and timepicker
+  $("#datepicker").datepicker({
+    dateFormat: "yy-mm-dd",
+    changeMonth: true,
+    changeYear: true
+  });
+
+  const timeInput = document.getElementById('timepicker');
+    
+  if (timeInput) {
+    // Set default attributes if not set in HTML
+    timeInput.min = '09:00';
+    timeInput.max = '18:00';
+    timeInput.step = '900'; // 15 minutes in seconds
+    
+    // Add validation
+    timeInput.addEventListener('change', function() {
+      const time = this.value;
+      
+      // Basic validation
+      if (!time) {
+        return; // No value entered
+      }
+      
+      // Convert to minutes for easier comparison
+      const [hours, minutes] = time.split(':').map(Number);
+      const totalMinutes = hours * 60 + minutes;
+      
+      // Check if within business hours (9AM-6PM)
+      if (totalMinutes < 540 || totalMinutes > 1080) { // 540min = 9AM, 1080min = 6PM
+        alert('Please select a time between 9:00 AM and 6:00 PM');
+        this.value = '';
+        this.focus();
+      }
+
+
+      
+      // Additional validation if needed
+      if (minutes % 15 !== 0) {
+        alert('Please select time in 15-minute increments (e.g., 9:00, 9:15, 9:30)');
+        this.value = '';
+        this.focus();
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Improve UX - show time picker on focus for mobile
+    timeInput.addEventListener('focus', function() {
+      this.type = 'time';
+    });
+    
+    // Optional: Format display when not focused
+    timeInput.addEventListener('blur', function() {
+      if (this.value) {
+        this.type = 'text';
+        const [hours, minutes] = this.value.split(':');
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        this.value = `${displayHours}:${minutes} ${period}`;
+      }
+    });
+  }
+
+
+  // Load events from localStorage
+  loadEvents();
+
+  // Handle event submission
+  $("#submitEvent").click(async function() {
+    const selectedDate = $("#datepicker").val();
+    const selectedTime = timeInput.value;
+    const eventType = $("#eventDropdown").val();
+    const eventName = $("#eventDescription").val().trim();
+    
+    // Map frontend values to backend expected values
+    const typeMapping = {
+      'seasonal': 'Seasonal Events',
+      'trips': 'Trips',
+      'special': 'Special Events'
+    };
+    
+    if (!selectedDate || !selectedTime || !eventType || !eventName) {
+      alert("Please fill in all required fields before submitting.");
+      return;
+    }
+
+    const time24hr = convertTo24HourFormat(selectedTime);
+
+    const eventObj = {
+      event_name: eventName,
+      event_type: typeMapping[eventType] || eventType,
+      event_date: selectedDate,
+      event_time: time24hr,
+      files: []
+    };
+
+    try {
+      const response = await createEventInDoctype(eventObj);
+      
+      if (response.message && response.message.status === 'error') {
+        throw new Error(response.message.message);
+      }
+      
+      // Success case
+      eventObj.server_id = response.message.name;
+      saveEvent(eventObj);
+      displayEvent(eventObj, true);
+
+      // Clear form
+      $("#datepicker").val("");
+      timeInput.value = "";
+      $("#eventDropdown").val("");
+      $("#eventDescription").val("");
+      $("#customModal").modal("hide");
+      
+      showAlert("Event created successfully", "success");
+    } catch (error) {
+      console.error("Error saving event:", error);
+      showAlert("Failed to create event: " + error.message, "error");
+    }
+  });
+
+  function convertTo24HourFormat(timeString) {
+    if (!timeString) return '';
+    
+    // If already in 24-hour format, return as-is
+    if (!timeString.includes('AM') && !timeString.includes('PM')) {
+      return timeString.length === 5 ? timeString + ':00' : timeString;
+    }
+    
+    const [time, period] = timeString.split(' ');
+    let [hours, minutes] = time.split(':');
+    
+    hours = parseInt(hours);
+    minutes = minutes || '00';
+    
+    if (period === 'PM' && hours < 12) {
+      hours += 12;
+    } else if (period === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+  }
+
+  // Custom alert function to replace frappe.show_alert
+  function showAlert(message, type) {
+    const alertDiv = $('<div class="custom-alert alert-' + type + '">' + message + '</div>');
+    $('body').append(alertDiv);
+    setTimeout(function() {
+      alertDiv.fadeOut(function() {
+        $(this).remove();
+      });
+    }, 3000);
+  }
+
+  // Handle file selection and show selected file names
+  $("#fileInput").on("change", function () {
+    let fileList = $("#fileList");
+    fileList.empty();
+
+    Array.from(this.files).forEach((file) => {
+      let listItem = $("<li>").text(file.name);
+      fileList.append(listItem);
+    });
+  });
+
+  // Save file button click handler
+  $("#saveFileBtn").click(function () {
+    let event = $(this).data("event");
+    let files = $("#fileInput")[0].files;
+    
+    if (files.length === 0) {
+      alert("Please select at least one file.");
+      return;
+    }
+
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    let eventIndex = events.findIndex(e => e.event === event.event && e.date === event.date);
+    
+    if (eventIndex === -1) return;
+
+    Array.from(files).forEach(file => {
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        events[eventIndex].files.push({
+          name: file.name,
+          data: e.target.result
+        });
+        localStorage.setItem("events", JSON.stringify(events));
+        displayUploadedFiles(event);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    $("#fileInput").val(""); // Clear file input
+  });
+
+  // Complaint form submission
+  document.getElementById('complaintForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    
+    const description = document.getElementById('complaintDescription').value;
+    const formData = { 
+      description: description, 
+      submitted_at: new Date().toISOString() 
+    };
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+      const response = await fetch('/api/method/villa_management.custom_app.create_complaint', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-Frappe-CSRF-Token': csrfToken 
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'No error message'}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.message && result.message.status === 'success') {
+        alert('Complaint submitted successfully!');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`An error occurred: ${error.message}`);
+    }
+  });
+
+  // Maintenance form submission
+  document.getElementById('maintenanceForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const serviceType = document.getElementById('serviceType').value;
+    const description = document.getElementById('maintenanceDescription').value;
+    const formData = { service_type: serviceType, description: description, submitted_at: new Date().toISOString() };
+    
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const response = await fetch('/api/method/villa_management.custom_app.create_maintenance_request', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'X-Frappe-CSRF-Token': csrfToken 
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const result = await response.json();
+      if (result.message && result.message.status === 'success') {
+        alert('Maintenance request submitted successfully!');
+        closePopup();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    }
+  });
+
+  async function createEventInDoctype(eventData) {
+    return new Promise((resolve, reject) => {
+      $.ajax({
+        url: '/api/method/villa_management.custom_app.create_event',
+        type: 'POST',
+        headers: { 
+          'X-Frappe-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+          event_name: eventData.event_name,
+          event_type: eventData.event_type,
+          event_date: eventData.event_date,
+          event_time: eventData.event_time
+        }),
+        dataType: 'json',
+        success: function(response) {
+          if (response.exc) {
+            try {
+              const errorData = JSON.parse(response.exc);
+              reject(new Error(errorData.message || 'Unknown error'));
+            } catch(e) {
+              reject(new Error('Failed to parse error response'));
+            }
+          } else if (response.message) {
+            resolve(response);
+          } else {
+            reject(new Error('Unexpected response format'));
+          }
+        },
+        error: function(xhr, status, error) {
+          let errorMsg = 'Request failed';
+          try {
+            const errResponse = JSON.parse(xhr.responseText);
+            errorMsg = errResponse.message || errorMsg;
+          } catch(e) {
+            errorMsg = `${errorMsg}: ${error}`;
+          }
+          reject(new Error(errorMsg));
+        }
+      });
+    });
+  }
+
+  // Save event to localStorage
+  function saveEvent(event) {
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    events.push(event);
+    localStorage.setItem("events", JSON.stringify(events));
+    console.log("Event saved:", event); // Debugging
+  }
+
+  function updateEventWithServerId(event, serverId) {
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    let eventIndex = events.findIndex(e => 
+      e.event === event.event && 
+      e.date === event.date && 
+      e.time === event.time
+    );
+    
+    if (eventIndex !== -1) {
+      events[eventIndex].server_id = serverId;
+      localStorage.setItem("events", JSON.stringify(events));
+    }
+  }
+
+  // Load events from localStorage
+  function loadEvents() {
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    events.forEach(event => {
+      displayEvent(event, !!event.server_id);
+    });
+  }
+
+function displayEvent(event, serverSync = true) {
+    const syncBadge = serverSync ? 
+      '<span class="badge bg-success ms-2">Synced</span>' : 
+      '<span class="badge bg-warning ms-2">Local Only</span>';
+
+    const eventCard = `
+      <div class="col-md-4 mt-3" data-event-id="${event.server_id || 'local_'+Date.now()}">
+        <div class="card shadow">
+          <div class="card-body">
+            <h5 class="card-title">${event.event_name} ${syncBadge}</h5>
+            <p><strong>Type:</strong> ${event.event_type}</p>
+            <p><strong>Date:</strong> ${event.event_date}</p>
+            <p><strong>Time:</strong> ${formatDisplayTime(event.event_time)}</p>
+            <button class="btn btn-success upload-btn" data-event='${JSON.stringify(event)}' 
+              data-bs-toggle="modal" data-bs-target="#uploadModal">
+              Upload Files
+            </button>
+            <button class="btn btn-primary download-btn" data-event='${JSON.stringify(event)}'>
+              Download Files
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const $eventCard = $(eventCard);
+
+    $eventCard.find(".upload-btn").click(function () {
+      const eventData = JSON.parse($(this).attr("data-event"));
+      $("#uploadEventName").text(eventData.event_name);
+      $("#fileInput").val("");
+      $("#saveFileBtn").data("event", eventData);
+      displayUploadedFiles(eventData);
+    });
+
+    // Handle download button click
+    $eventCard.find(".download-btn").click(function () {
+      downloadFiles(JSON.parse($(this).attr("data-event")));
+    });
+
+    $("#eventsContainer").append($eventCard);
+  }
+  function formatDisplayTime(timeString) {
+    if (!timeString) return '';
+    
+    // If already in AM/PM format, just return it
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      return timeString;
+    }
+    
+    // Convert HH:MM to AM/PM format
+    const [hours, minutes] = timeString.split(':');
+    const hourInt = parseInt(hours);
+    const suffix = hourInt >= 12 ? 'PM' : 'AM';
+    const displayHour = hourInt % 12 || 12;
+    
+    return `${displayHour}:${minutes} ${suffix}`;
+  }
+
+  // Display uploaded files list inside modal
+  function displayUploadedFiles(event) {
+    let fileList = $("#uploadedFilesList");
+    fileList.empty();
+
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    let currentEvent = events.find(e => e.event === event.event && e.date === event.date);
+
+    if (currentEvent && currentEvent.files && currentEvent.files.length > 0) {
+      currentEvent.files.forEach(file => {
+        let listItem = $("<li>").text(file.name);
+        fileList.append(listItem);
+      });
+    } else {
+      fileList.append("<li>No files uploaded yet.</li>");
+    }
+  }
+
+  // Download files (fetching from `localStorage`)
+  async function downloadFiles(event) {
+    let events = JSON.parse(localStorage.getItem("events")) || [];
+    let currentEvent = events.find(e => e.event === event.event && e.date === event.date);
+
+    if (!currentEvent || !currentEvent.files || currentEvent.files.length === 0) {
+      alert("No images available for download.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    let pdf = new jsPDF();
+    let yOffset = 10; // Space between images
+
+    for (let i = 0; i < currentEvent.files.length; i++) {
+      let file = currentEvent.files[i];
+
+      if (!file || !file.data || typeof file.data !== "string") {
+        console.warn("Skipping invalid file:", file);
+        continue; // Skip undefined or invalid files
+      }
+
+      if (file.data.startsWith("data:image")) { // Ensure it's an image
+        let img = new Image();
+        img.src = file.data;
+
+        await new Promise(resolve => {
+          img.onload = function () {
+            let width = pdf.internal.pageSize.getWidth();
+            let height = (img.height / img.width) * width; // Maintain aspect ratio
+
+            if (yOffset + height > pdf.internal.pageSize.getHeight() - 10) {
+              pdf.addPage(); // Add a new page if image overflows
+              yOffset = 10;
+            }
+
+            pdf.addImage(img, "JPEG", 10, yOffset, width - 20, height);
+            yOffset += height + 10; // Move down for the next image
+            resolve();
+          };
+        });
+      }
+    }
+
+    pdf.save(`${event.event}_images.pdf`);
+  }
+
+
+  // Fetch residents' data when the page loads
+  fetchResidents();
+
+  async function fetchResidents() {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      // Fetch residents' data from the backend
+      const response = await fetch('/api/method/villa_management.custom_app.get_residents', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Frappe-CSRF-Token': csrfToken // Include CSRF token for authenticated requests
+        }
+      });
+
+      // Check if the response is successful
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Parse the response JSON
+      const result = await response.json();
+
+      // Check if the response contains data
+      if (result.message && result.message.status === 'success') {
+        const residents = result.message.data;
+        renderResidents(residents); // Render the residents' data
+      } else {
+        console.error("Failed to fetch residents:", result.message);
+        alert("Failed to fetch residents. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error fetching residents:", error);
+      alert("An error occurred while fetching residents. Please try again.");
+    }
+  }
+
+  function renderResidents(residents) {
+    // Get the container where residents' data will be displayed
+    const container = document.querySelector("#villa-team-container");
+
+    if (!container) {
+      console.error("Container not found!");
+      return;
+    }
+
+    // Clear the container before rendering new data
+    container.innerHTML = '';
+
+    // Loop through the residents' data and create HTML elements
+    residents.forEach(resident => {
+      const residentCard = `
+        <div style="text-align: center; width: 150px; margin-bottom: 20px;">
+          <!-- Display Resident Image -->
+          <img src="${resident.proof}" alt="${resident.full_name}" style="width: 120px; height: 120px; border-radius: 50%;">
+          <!-- Display Resident Name -->
+          <h3 style="font-size: 16px; margin: 10px 0 5px; color: #333;">${resident.full_name}</h3>
+          <!-- Display Villa Number -->
+          <p style="font-size: 12px; font-style: italic; color: gray;">Villa ${resident.villa_number}</p>
+          <p>🔵 ⚫ ⚫</p>
+        </div>
+      `;
+
+      // Append the resident card to the container
+      container.innerHTML += residentCard;
+    });
+  }
+});
+    
+  </script>
+</body>
+
+</html>
+

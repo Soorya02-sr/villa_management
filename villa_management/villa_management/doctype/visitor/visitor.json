@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "VS-.####",
+ "creation": "2025-02-10 13:27:48.833641",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "full_name",
+  "contact_number",
+  "place",
+  "entry_time",
+  "exit_time",
+  "column_break_zkxo",
+  "resident",
+  "user_id",
+  "description",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "\nResident\nOthers",
+   "reqd": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Phone",
+   "label": "Contact Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "entry_time",
+   "fieldtype": "Datetime",
+   "label": "Entry Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "exit_time",
+   "fieldtype": "Datetime",
+   "label": "Exit Time"
+  },
+  {
+   "fieldname": "resident",
+   "fieldtype": "Link",
+   "label": "Resident",
+   "options": "Residents Details"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "place",
+   "fieldtype": "Data",
+   "label": "Place"
+  },
+  {
+   "fieldname": "column_break_zkxo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "resident.custom_user",
+   "fieldname": "user_id",
+   "fieldtype": "Link",
+   "label": "User Id",
+   "options": "User"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Visitor",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-02-28 13:22:33.891044",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Visitor",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

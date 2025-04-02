@@ -1,0 +1,91 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:MS - {DD}{MM}-{###}",
+ "creation": "2025-02-14 12:28:45.361888",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ylxb",
+  "amended_from",
+  "service_type",
+  "resident_name",
+  "issue",
+  "submitted_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ylxb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Maintanence",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "resident_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Resident Name",
+   "options": "Residents Details",
+   "reqd": 1
+  },
+  {
+   "fieldname": "issue",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Issue",
+   "reqd": 1
+  },
+  {
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Submitted At",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Service Type",
+   "options": "\nPlumbing Services\nElectrical Services\nHVAC\nAppliances Services\nEmergency Repairs\nHome Automation Integration",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2025-02-28 12:02:46.251362",
+ "modified_by": "Administrator",
+ "module": "Villa Management",
+ "name": "Maintanence",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}
