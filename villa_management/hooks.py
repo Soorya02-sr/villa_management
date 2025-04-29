@@ -251,7 +251,6 @@ signup_form_template="villa_management/templates/signup.html"
 website_routes = [
     {"from_route": "/dashboard", "to_route": "villa_management.dashboard"}
 ]
-
 # doc_events = {
 #     "User": {
 #         "after_insert": "villa_management.user.create_employee"

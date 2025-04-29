@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "N-.####",
  "creation": "2025-03-06 09:54:05.837348",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,11 +10,7 @@
   "amended_from",
   "type",
   "message",
-  "created_at",
-  "column_break_lfnk",
-  "recipient_type",
-  "recipient_doctype",
-  "recipient"
+  "created_at"
  ],
  "fields": [
   {
@@ -37,19 +34,6 @@
    "options": "\nNormal Notification\nAnnouncement"
   },
   {
-   "fieldname": "recipient_type",
-   "fieldtype": "Select",
-   "label": "Recipient Type",
-   "options": "\nAll\nResidents\nSecurity\nPersonalized"
-  },
-  {
-   "depends_on": "eval:doc.recipient_type=='Personalized'\n",
-   "fieldname": "recipient",
-   "fieldtype": "Dynamic Link",
-   "label": "Recipient",
-   "options": "recipient_doctype"
-  },
-  {
    "fieldname": "message",
    "fieldtype": "Small Text",
    "label": "Message"
@@ -58,26 +42,16 @@
    "fieldname": "created_at",
    "fieldtype": "Datetime",
    "label": "Created At"
-  },
-  {
-   "fieldname": "column_break_lfnk",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.recipient_type=='Personalized'\n",
-   "fieldname": "recipient_doctype",
-   "fieldtype": "Select",
-   "label": "Recipient Doctype",
-   "options": "\nResidents Details\nEmployee"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-03-31 18:38:59.143108",
+ "modified": "2025-04-06 10:34:54.387455",
  "modified_by": "Administrator",
  "module": "Villa Management",
  "name": "Notifications",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

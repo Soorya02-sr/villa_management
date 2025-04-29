@@ -251,26 +251,6 @@ def create_maintenance_request(service_type, description, submitted_at):
 
 
 
-# @frappe.whitelist()
-# def create_complaint(description, created_at):
-#     try:
-#         # Create a new Complaint document
-#         user = frappe.session.user
-#         resident = frappe.db.exists("Residents Details", {"custom_user":user})
-#         print("HERE", resident)
-#         complaint = frappe.new_doc("Complaints")
-#         complaint.resident=resident
-#         complaint.description=description
-#         complaint.created_at=frappe.utils.now()
-#         complaint.insert(ignore_permissions=True)  # Insert the document
-#         frappe.db.commit()  # Commit the transaction
-
-#         print("Complaint created successfully")  # Debugging: Confirm success
-#         return {"status": "success", "message": "Complaint created successfully"}
-#     except Exception as e:
-#         frappe.log_error(f"Error occurred while creating complaint: {str(e)}", e)
-#         print("Error:", str(e))  # Debugging: Log the error
-#         return {"status": "error", "message": "An error occurred while creating the complaint."}
 
 @frappe.whitelist(allow_guest=True)
 def get_maintenance_requests():
@@ -348,37 +328,6 @@ def get_residents():
 
 
 
-# @frappe.whitelist()
-# def get_payments():
-#     """Get payments for current resident"""
-#     try:
-#         if not frappe.session.user or frappe.session.user == "Guest":
-#             frappe.throw("Authentication required", frappe.AuthenticationError)
-        
-#         # Debug: Print current user to logs
-#         frappe.logger().info(f"Fetching payments for: {frappe.session.user}")
-        
-#         payments = frappe.get_all("Payment",
-#             fields=["name", "type", "amount", "created", "resident"],
-#             filters={"resident": frappe.session.user},
-#             order_by="creation desc"
-#         )
-        
-#         # Debug: Print raw SQL query
-#         frappe.logger().info(f"SQL Query: {frappe.db.last_query}")
-        
-#         return {
-#             "status": "success",
-#             "data": payments,
-#             "user": frappe.session.user
-#         }
-#     except Exception as e:
-#         frappe.log_error(f"Payment fetch error: {str(e)}")
-#         return {
-#             "status": "error",
-#             "message": str(e)
-#         }
-
 
 
 
@@ -454,33 +403,7 @@ def get_payment_details(payment_id):
             "message": str(e)
         }
 
-# @frappe.whitelist()
-# def get_payment_details(payment_id):
-#     try:
-#         payment = frappe.get_doc("Payment", payment_id)
-        
-#         # Get all fields including custom fields
-#         payment_data = payment.as_dict()
-        
-#         # Build response with proper field names
-#         response = {
-#             "status": "success",
-#             "message": {
-#                 "id": payment.name,
-#                 "type": payment.type,
-#                 "amount": payment.amount,
-#                 "paid": payment.paid,
-#                 "payment_mode": payment.payment_mode,
-#                 "created": frappe.utils.format_datetime(payment.creation),
-#                 "description": payment_data.get("description") or payment_data.get("discription") or ""
-#                 # Handles both spellings and defaults to empty string
-#             }
-#         }
-#         return response
 
-#     except Exception as e:
-#         frappe.log_error(title="Payment Error", message=str(e))
-#         return {"status": "error", "message": str(e)}
 
 @frappe.whitelist()
 def update_payment(**kwargs):
@@ -570,79 +493,116 @@ def create_event(event_name, event_type, event_date, event_time):
 
 
 
-# @frappe.whitelist()
-# def delete_event(name):
-#     """Allow deletion only for Admin users"""
-#     if frappe.session.user != "Administrator":
-#         frappe.throw("Only administrators can delete events", frappe.PermissionError)
-    
-#     try:
-#         # Delete from database
-#         frappe.delete_doc("Events", name)
+
+
+
+
+
+
+
+
+
+from frappe import whitelist
+from frappe import get_all
+from frappe import _
+
+@whitelist(allow_guest=True)
+def get_notifications():
+    """Fetch all notifications to display in resident portal"""
+    try:
+        notifications = get_all(
+            "Notifications",  # Changed to match your actual doctype name (lowercase)
+            fields=["name", "type", "message", "created_at"],
+            filters={
+                "docstatus": 1  # Only submitted documents
+            },
+            order_by="creation desc",
+            limit=50
+        )
+
+        return {
+            "status": "success",
+            "data": notifications
+        }
+
+    except Exception as e:
+        from frappe import log_error
+        log_error("Failed to fetch notifications")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+@frappe.whitelist()
+def get_security_team():
+    try:
+        security_team = []
         
-#         return {
-#             "status": "success",
-#             "message": "Event deleted",
-#             "deleted_id": name
-#         }
-#     except Exception as e:
-#         frappe.log_error(title="Event Deletion Error", message=str(e))
-#         return {
-#             "status": "error",
-#             "message": str(e)
-#         }
-
-
-
-# @frappe.whitelist()
-# def check_event_delete_permission(event_name):
-#     """
-#     Check if current user has permission to delete the specified event
-#     """
-#     if not event_name:
-#         return False
-    
-#     try:
-#         # Check if document exists
-#         if not frappe.db.exists("Events", event_name):
-#             return False
+        # Get active security employees
+        security_employees = frappe.get_all("Employee",
+            filters={
+                "status": "Active",
+                "user_id": ["!=", ""]  # Ensure user_id is not empty
+            },
+            fields=["name", "first_name", "custom_contact_number", "user_id"]
+        )
+        
+        frappe.logger().debug(f"Found {len(security_employees)} security employees")
+        
+        for employee in security_employees:
+            # Check if user has "Security" role
+            user_roles = frappe.get_roles(employee["user_id"])
+            if "Security" not in user_roles:
+                continue
+                
+            # Get active shift assignments using employee_name (not employee ID)
+            shifts = frappe.get_all("Shift Assignment",
+                filters={
+                    "employee_name": employee["first_name"],  # Changed to employee_name
+                    "status": "Active"
+                },
+                fields=["shift_type"],
+                order_by="creation desc",
+                limit=1
+            )
             
-#         # Check delete permission
-#         has_permission = frappe.has_permission("Events", "delete", doc=event_name)
+            if shifts:
+                security_team.append({
+                    "employee_name": employee["first_name"],
+                    "shift_type": shifts[0]["shift_type"],
+                    "custom_contact_number": employee["custom_contact_number"],
+                    "status": "Active"
+                })
         
-#         return {
-#             "has_permission": has_permission,
-#             "message": "Permission check successful"
-#         }
-#     except Exception as e:
-#         frappe.log_error(f"Permission check failed for event {event_name}")
-#         return {
-#             "has_permission": False,
-#             "message": str(e)
-#         }
-
-# @frappe.whitelist()
-# def get_deleted_events():
-#     """Get recently deleted events for sync"""
-#     try:
-#         # Get deleted events from the last 30 minutes
-#         deleted_events = frappe.get_all("Deleted Document",
-#             filters={
-#                 "ref_doctype": "Events",
-#                 "deleted": (">", frappe.utils.add_to_date(None, minutes=-30))
-#             },
-#             fields=["name"]
-#         )
+        return {
+            "status": "success" if security_team else "empty",
+            "data": security_team
+        }
         
-#         return {
-#             "status": "success",
-#             "deleted_ids": [d.name for d in deleted_events]
-#         }
-#     except Exception as e:
-#         return {
-#             "status": "error",
-#             "message": str(e)
-#         }
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Failed to fetch security team")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
+# payment.py
+import frappe
+from frappe.utils import getdate, get_first_day, get_last_day
 
+@frappe.whitelist()
+def check_existing_monthly_fund(resident, posting_date):
+    posting_date = getdate(posting_date)
+    first_day = get_first_day(posting_date)
+    last_day = get_last_day(posting_date)
+    
+    existing = frappe.db.exists('Payment', {
+        'type': 'Monthly Fund',
+        'resident': resident,
+        'posting_date': ['between', [first_day, last_day]],
+        'docstatus': ['<', 2]  # 0=Draft, 1=Submitted
+    })
+    
+    return bool(existing)

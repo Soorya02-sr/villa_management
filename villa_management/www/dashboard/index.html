@@ -198,6 +198,110 @@
       font-size: 18px;
       padding: 12px;
     }
+
+    .notification-item {
+  background: #f8f9fa;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.notification-item:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+#notificationsList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+#notificationsList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#notificationsList::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+#notificationsList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#announcementMarquee {
+  background: #ffcc00;
+  padding: 10px;
+  color: #000;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+
+/* Notification Styles */
+.notification-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.notification-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.notification-message {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.notification-date {
+  font-size: 0.8rem;
+  color: #888;
+  margin-left: 12px;
+}
+
+.notification-unread {
+  position: relative;
+}
+
+.notification-unread::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #f44336;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+/* Scrollbar styling */
+#notificationsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#notificationsList::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+
+#notificationsList::-webkit-scrollbar-track {
+  background: #f9f9f9;
+}
   </style>
 </head>
 
@@ -212,6 +316,7 @@
         <li class="mx-3"><a href="#events" class="nav-link">Events</a></li>
         <li class="mx-3"><a href="#contact" class="nav-link">Contact</a></li>
         <li class="mx-3"><a href="/new" class="nav-link">Dashboard</a></li>
+        <li class="mx-3"><a href="#notifications" class="nav-link">Notifications</a></li>
         <li class="mx-3"><a href="#" onclick="openPopup()" class="nav-link">Maintenance Request</a></li>
       </ul>
     </nav>
@@ -267,6 +372,12 @@
     <div id="scrollToBottom" class="scroll-bottom-btn">
       <i class="fas fa-chevron-down"></i> <span>Scroll to Bottom</span>
     </div>
+
+    <div id="announcementMarquee" style="background: #ffcc00; padding: 8px 15px; color: #000; font-weight: 600; font-size: 1rem; border-radius: 4px; margin-bottom: 20px;">
+  <!-- Announcements will be loaded here -->
+</div>
+
+
 
 
 <section id="features" class="features-container">
@@ -453,6 +564,12 @@
     </section>
   </div>
 
+<h2 class="text-center mb-4">Notifications</h2>
+<div id="notificationsList" style="max-height: 500px; overflow-y: auto; padding-right: 8px;">
+  <!-- Notifications will be loaded here -->
+</div>
+
+
   <footer style="background:#222; color:#fff; padding:40px 0; text-align:center;">
     <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-around;">
 
@@ -477,9 +594,21 @@
       <!-- Contact Info -->
       <div style="flex:1; min-width:250px; padding:20px;">
         <h5 style="font-size:18px; margin-bottom:10px;">Contact</h5>
-        <p style="margin:5px 0;"><i class="fas fa-home"></i> Dubai, UAE</p>
-        <p style="margin:5px 0;"><i class="fas fa-envelope"></i> support@villaease.com</p>
-        <p style="margin:5px 0;"><i class="fas fa-phone"></i> +971 50 123 4567</p>
+        <p style="margin:5px 0;"><i class="fas fa-home"></i>Kakkanad, Kochi</p>
+        <p style="margin:5px 0;"><i class="fas fa-envelope"></i> kedara@villaease.com</p>
+        <p style="margin:5px 0;"><i class="fas fa-phone"></i> +918943349504</p>
+      </div>
+     <!-- Security Contacts -->
+      <div style="flex:1; min-width:250px; padding:20px;">
+        <h5 style="font-size:18px; margin-bottom:10px;">Security Team</h5>
+        <div id="securityContacts">
+          <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status" style="width: 1rem; height: 1rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2" style="font-size:14px;">Loading security details...</p>
+          </div>
+        </div>
       </div>
 
       <!-- Social Media -->
@@ -626,6 +755,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Load events from localStorage
   loadEvents();
+  fetchSecurityContacts(); 
+  fetchNotifications(); // Load notifications on page load
+
+  // Set interval to refresh notifications every 5 minutes
+  setInterval(fetchNotifications, 300000);
 
   // Handle event submission
   $("#submitEvent").click(async function() {
@@ -682,6 +816,176 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+async function fetchNotifications() {
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const response = await fetch('/api/method/villa_management.custom_app.get_notifications', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Frappe-CSRF-Token': csrfToken
+      },
+      credentials: 'include' // Important for session/cookie handling
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.message && result.message.status === 'success') {
+      displayNotifications(result.message.data);
+    } else {
+      console.error("Failed to fetch notifications:", result.message);
+      showAlert("Failed to load notifications", "error");
+    }
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    showAlert("Failed to load notifications. Please try again.", "error");
+  }
+}
+// function displayNotifications(notifications) {
+//   const announcementsContainer = document.getElementById('announcementMarquee');
+//   const notificationsContainer = document.getElementById('notificationsList');
+  
+//   // Clear existing content
+//   announcementsContainer.innerHTML = '';
+//   notificationsContainer.innerHTML = '';
+  
+//   if (!notifications || notifications.length === 0) {
+//     notificationsContainer.innerHTML = '<p class="text-center">No notifications available</p>';
+//     announcementsContainer.style.display = 'none';
+//     return;
+//   }
+  
+//   // Separate announcements and normal notifications
+//   const announcements = notifications.filter(n => n.type === 'Announcement');
+//   const normalNotifications = notifications.filter(n => n.type !== 'Announcement');
+  
+//   // Display announcements as marquee
+//   if (announcements.length > 0) {
+//     announcementsContainer.style.display = '';
+//     const marqueeContent = announcements.map(a => a.message).join(' ••• ');
+//     announcementsContainer.innerHTML = `
+//       <marquee behavior="scroll" direction="left" scrollamount="5">
+//         ${marqueeContent}
+//       </marquee>
+//     `;
+//   } else {
+//     announcementsContainer.style.display = 'none';
+//   }
+  
+//   // Display normal notifications
+//   if (normalNotifications.length > 0) {
+//     normalNotifications.forEach(notification => {
+//       const notificationElement = document.createElement('div');
+//       notificationElement.className = 'notification-item mb-3 p-3 border-bottom';
+//       notificationElement.innerHTML = `
+//         <p>${notification.message}</p> <!-- Fixed typo here -->
+//         <small class="text-muted">${formatNotificationDate(notification.created_at)}</small>
+//       `;
+//       notificationsContainer.appendChild(notificationElement);
+//     });
+//   } else {
+//     notificationsContainer.innerHTML = '<p class="text-center">No normal notifications available</p>';
+//   }
+// }
+// Updated displayNotifications function
+function displayNotifications(notifications) {
+  const announcementsContainer = document.getElementById('announcementMarquee');
+  const notificationsContainer = document.getElementById('notificationsList');
+  
+  // Clear existing content
+  announcementsContainer.innerHTML = '';
+  notificationsContainer.innerHTML = '';
+  
+  if (!notifications || notifications.length === 0) {
+    notificationsContainer.innerHTML = '<div class="text-center py-4 text-muted">No notifications available</div>';
+    announcementsContainer.style.display = 'none';
+    return;
+  }
+  
+  // Separate announcements and normal notifications
+  const announcements = notifications.filter(n => n.type === 'Announcement');
+  const normalNotifications = notifications.filter(n => n.type !== 'Announcement');
+  
+  // Display announcements as marquee
+  if (announcements.length > 0) {
+    announcementsContainer.style.display = '';
+    const marqueeContent = announcements.map(a => a.message).join(' ••• ');
+    announcementsContainer.innerHTML = `
+      <marquee behavior="scroll" direction="left" scrollamount="5">
+        ${marqueeContent}
+      </marquee>
+    `;
+  } else {
+    announcementsContainer.style.display = 'none';
+  }
+  
+  // Display normal notifications
+  if (normalNotifications.length > 0) {
+    normalNotifications.forEach(notification => {
+      const notificationElement = document.createElement('div');
+      notificationElement.className = 'notification-item notification-unread'; // Add unread class
+      
+      notificationElement.innerHTML = `
+        <div class="notification-content">
+          <span class="notification-message">${notification.message}</span>
+          <span class="notification-date">${formatNotificationDate(notification.created_at)}</span>
+        </div>
+      `;
+      notificationsContainer.appendChild(notificationElement);
+    });
+  } else {
+    notificationsContainer.innerHTML = '<div class="text-center py-4 text-muted">No notifications available</div>';
+  }
+  
+  // Update unread count in navbar
+  updateUnreadCount(normalNotifications.length);
+}
+
+// Function to update unread count in navbar
+function updateUnreadCount(count) {
+  const navLink = document.querySelector('a[href="#notifications"]');
+  if (!navLink) return;
+  
+  // Remove existing badge if any
+  const existingBadge = navLink.querySelector('.unread-badge');
+  if (existingBadge) existingBadge.remove();
+  
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'unread-badge';
+    badge.style.cssText = `
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      width: 16px;
+      height: 16px;
+      background: #f44336;
+      border-radius: 50%;
+      color: white;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+    badge.textContent = count > 9 ? '9+' : count;
+    navLink.style.position = 'relative';
+    navLink.appendChild(badge);
+  }
+}
+function formatNotificationDate(dateString) {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return dateString;
+  }
+}
   function convertTo24HourFormat(timeString) {
     if (!timeString) return '';
     
@@ -1091,10 +1395,74 @@ function displayEvent(event, serverSync = true) {
       container.innerHTML += residentCard;
     });
   }
+
+ async function fetchSecurityContacts() {
+  try {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const response = await fetch('/api/method/villa_management.custom_app.get_security_team', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Frappe-CSRF-Token': csrfToken
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.message && result.message.status === 'success') {
+      renderSecurityContacts(result.message.data);
+    } else {
+      console.error("Failed to fetch security contacts:", result.message);
+      document.getElementById('securityContacts').innerHTML = `
+        <p style="margin:5px 0; color:#ffcc00;"><i class="fas fa-exclamation-triangle"></i> Failed to load security team</p>
+      `;
+    }
+  } catch (error) {
+    console.error("Error fetching security contacts:", error);
+    document.getElementById('securityContacts').innerHTML = `
+      <p style="margin:5px 0; color:#ffcc00;"><i class="fas fa-exclamation-circle"></i> Service unavailable</p>
+    `;
+  }
+}
+
+function renderSecurityContacts(securityTeam) {
+  const container = document.getElementById('securityContacts');
+  
+  if (!securityTeam || securityTeam.length === 0) {
+    container.innerHTML = `
+      <p style="margin:5px 0;"><i class="fas fa-user-shield"></i> No security assigned</p>
+    `;
+    return;
+  }
+
+  let html = '';
+  
+  securityTeam.forEach(person => {
+    html += `
+      <div style="margin-bottom:15px; text-align:left;">
+        <p style="margin:5px 0; font-weight:500;">
+          <i class="fas fa-user"></i> ${person.employee_name}
+          <span class="badge bg-success" style="font-size:10px; margin-left:5px;">${person.status}</span>
+        </p>
+        <p style="margin:5px 0; font-size:14px;">
+          <i class="fas fa-clock"></i> ${person.shift_type} Shift
+        </p>
+        <p style="margin:5px 0; font-size:14px;">
+          <i class="fas fa-phone"></i> ${person.custom_contact_number || 'Contact not available'}
+        </p>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
 });
     
   </script>
 </body>
 
 </html>
-

@@ -1,8 +1,8 @@
 # Copyright (c) 2025, soorya and contributors
 # For license information, please see license.txt
 
-# import frappe
-# from frappe.model.document import Document
+import frappe
+from frappe.model.document import Document
 
 
 
@@ -24,4 +24,8 @@ class Events(Document):
         # Set the values in the main document
         self.expected_budget = expected_total
         self.actual_budget = actual_total
+
+
+
+    
 
